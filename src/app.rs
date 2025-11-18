@@ -4,6 +4,7 @@
 pub struct TemplateApp {
     // Example stuff:
     label: String,
+    textbox: String,
 
     #[serde(skip)] // This how you opt-out of serialization of a field
     value: f32,
@@ -14,6 +15,7 @@ impl Default for TemplateApp {
         Self {
             // Example stuff:
             label: "Hello World!".to_owned(),
+            textbox: String::new(),
             value: 2.7,
         }
     }
@@ -81,15 +83,10 @@ impl eframe::App for TemplateApp {
 
             ui.separator();
 
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/main/",
-                "Source code."
-            ));
-
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
-                egui::warn_if_debug_build(ui);
-            });
+            ui.horizontal(|ui| {
+                ui.label("textbox");
+                ui.text_edit_multiline(&mut self.textbox)
+            })
         });
     }
 }
