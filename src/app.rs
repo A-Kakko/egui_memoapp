@@ -15,7 +15,7 @@ impl Default for TemplateApp {
         Self {
             // Example stuff:
             label: "Hello World!".to_owned(),
-            textbox: String::new(),
+            textbox: "test".to_owned(),
             value: 2.7,
         }
     }
