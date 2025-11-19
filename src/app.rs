@@ -2,22 +2,15 @@
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct MemoApp {
-    textbox: String,
-    selected: usize,
-    items: Vec<String>,
-    #[serde(skip)] // This how you opt-out of serialization of a field
-    value: f32,
+    scenes: Vec<Scene>,
+    selected_index: usize,
+    // #[serde(skip)], // This how you opt-out of serialization of a field
 }
 
-impl Default for MemoApp {
-    fn default() -> Self {
-        Self {
-            textbox: String::new(),
-            selected: 0,
-            items: vec!["test1".to_string(), "test2".to_string()],
-            value: 2.7,
-        }
-    }
+#[derive(serde::Deserialize, serde::Serialize, Default)]
+struct Scene {
+    title: String,
+    content: String,
 }
 
 impl MemoApp {
@@ -32,6 +25,27 @@ impl MemoApp {
             eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
         } else {
             Default::default()
+        }
+    }
+}
+impl Default for MemoApp {
+    fn default() -> Self {
+        Self {
+            scenes: vec![
+                Scene {
+                    title: String::from("シーン1"),
+                    content: String::from("テスト内容1"),
+                },
+                Scene {
+                    title: String::from("シーン2"),
+                    content: String::from("テスト内容2"),
+                },
+                Scene {
+                    title: String::from("シーン3"),
+                    content: String::from("テスト内容3"),
+                },
+            ],
+            selected_index: 0,
         }
     }
 }
@@ -65,38 +79,23 @@ impl eframe::App for MemoApp {
                 egui::widgets::global_theme_preference_buttons(ui);
             });
         });
-
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
-
-            egui::ScrollArea::vertical()
-                .max_height(400.0)
-                .show(ui, |ui| {
-                    for (i, item) in self.items.iter().enumerate() {
-                        ui.selectable_value(&mut self.selected, i, item);
+        egui::SidePanel::left("scene_list").show(ctx, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                for (i, scene) in self.scenes.iter().enumerate() {
+                    if ui
+                        .selectable_label(self.selected_index == i, &scene.title)
+                        .clicked()
+                    {
+                        self.selected_index = i;
                     }
-                });
-
-            ui.separator();
-
-            ui.horizontal(|ui| {
-                ui.label("textbox");
-                ui.text_edit_multiline(&mut self.textbox)
+                }
             })
         });
-    }
-}
 
-fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 0.0;
-        ui.label("Powered by ");
-        ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-        ui.label(" and ");
-        ui.hyperlink_to(
-            "eframe",
-            "https://github.com/emilk/egui/tree/master/crates/eframe",
-        );
-        ui.label(".");
-    });
+        egui::CentralPanel::default().show(ctx, |ui| {
+            if let Some(scene) = self.scenes.get_mut(self.selected_index) {
+                ui.text_edit_multiline(&mut scene.content);
+            }
+        });
+    }
 }
