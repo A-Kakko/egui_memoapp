@@ -1,6 +1,8 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
-
+//
+use eframe::egui;
+use std::sync::Arc;
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
@@ -18,9 +20,12 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
     eframe::run_native(
-        "eframe template",
+        "MemoApp",
         native_options,
-        Box::new(|cc| Ok(Box::new(eframe_template::MemoApp::new(cc)))),
+        Box::new(|cc| {
+            setup_custom_fonts(&cc.egui_ctx);
+            Ok(Box::new(eframe_template::MemoApp::default()))
+        }),
     )
 }
 
@@ -69,4 +74,32 @@ fn main() {
             }
         }
     });
+}
+
+fn setup_custom_fonts(ctx: &egui::Context) {
+    // フォント設定を取得
+    let mut fonts = egui::FontDefinitions::default();
+
+    // 日本語フォント（可変ウェイト）を追加
+    fonts.font_data.insert(
+        "noto_sans_jp".to_owned(),
+        egui::FontData::from_static(include_bytes!("../assets/BizinGothicNF-Regular.ttf")).into(),
+    );
+
+    // フォントファミリーに追加
+    fonts
+        .families
+        .entry(egui::FontFamily::Proportional)
+        .or_default()
+        .insert(0, "noto_sans_jp".to_owned()); // 一番優先度高く追加
+
+    // モノスペースフォントにも日本語フォントを追加
+    fonts
+        .families
+        .entry(egui::FontFamily::Monospace)
+        .or_default()
+        .push("noto_sans_jp".to_owned());
+
+    // フォント設定を適用
+    ctx.set_fonts(fonts);
 }
