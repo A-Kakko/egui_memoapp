@@ -10,8 +10,13 @@ pub fn show(
 ) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.horizontal(|ui| {
+            ui.label("Choose Scene");
+            if ui.button("◀").clicked() {
+                *selected_index = selected_index.saturating_sub(1);
+            }
+            // シーンのリストボックス
             if let Some(scene) = scenes.get(*selected_index) {
-                egui::ComboBox::from_label("Choose Scene")
+                egui::ComboBox::from_id_salt("scene_combo")
                     .selected_text(&scene.title)
                     .show_ui(ui, |ui| {
                         for (index, scene) in scenes.iter().enumerate() {
@@ -20,6 +25,33 @@ pub fn show(
                     });
             }
 
+            if ui.button("▶").clicked() {
+                *selected_index = (*selected_index + 1).min(scenes.len() - 1);
+            }
+            // モード選択ComboBox
+            let current_mode_index = scenes.get(*selected_index).map(|s| s.mode_index);
+            if let Some(mode_index) = current_mode_index {
+                if let Some(current_mode) = modes.get(mode_index) {
+                    ui.label("Choose Mode:");
+                    egui::ComboBox::from_id_source("mode_combo")
+                        .selected_text(&current_mode.name)
+                        .show_ui(ui, |ui| {
+                            for (index, mode) in modes.iter().enumerate() {
+                                if ui
+                                    .selectable_label(mode_index == index, &mode.name)
+                                    .clicked()
+                                {
+                                    if let Some(scene_mut) = scenes.get_mut(*selected_index) {
+                                        scene_mut.mode_index = index;
+                                        scene_mut.selected_judge_index = 0; // モード変更時は判定をリセット
+                                    }
+                                }
+                            }
+                        });
+                }
+            }
+
+            // シーン追加/削除ボタン
             if ui
                 .add(
                     egui::Button::new(egui::RichText::new("シーン追加").strong())
@@ -47,6 +79,7 @@ pub fn show(
             }
         });
 
+        // テキストボックス欄描写
         ui.horizontal(|ui| {
             // ボタンの数からテキストボックスの高さを計算
             let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_index);
@@ -94,6 +127,7 @@ pub fn show(
         });
     });
 }
+
 fn calc_height_from_buttons(
     ui: &egui::Ui,
     modes: &[Mode],
