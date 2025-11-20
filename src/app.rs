@@ -1,11 +1,12 @@
 use crate::panels;
-use crate::scene::{Scene, SceneTypes};
+use crate::scene::{Mode, Scene};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct MemoApp {
     scenes: Vec<Scene>,
-    selected_index: usize,
+    modes: Vec<Mode>,
+    selected_scene_index: usize,
     create_index: usize,
 }
 
@@ -15,21 +16,63 @@ impl Default for MemoApp {
             scenes: vec![
                 Scene {
                     title: String::from("シーン1"),
-                    content: String::from("テスト内容1"),
-                    scene_type: SceneTypes::Explore,
+                    mode_index: 1,
+                    contents: vec![
+                        vec![String::from("地の文1")],
+                        vec![
+                            String::from("大成功1"),
+                            String::from("成功1"),
+                            String::from("失敗1"),
+                            String::from("ファンブル1"),
+                        ],
+                    ],
+                    selected_judge_index: 0,
                 },
                 Scene {
                     title: String::from("シーン2"),
-                    content: String::from("テスト内容2"),
-                    scene_type: SceneTypes::Explore,
+                    mode_index: 1,
+                    contents: vec![
+                        vec![String::from("地の文2")],
+                        vec![
+                            String::from("大成功2"),
+                            String::from("成功2"),
+                            String::from("失敗2"),
+                            String::from("ファンブル2"),
+                        ],
+                    ],
+                    selected_judge_index: 0,
                 },
                 Scene {
                     title: String::from("シーン3"),
-                    content: String::from("テスト内容3"),
-                    scene_type: SceneTypes::Explore,
+                    mode_index: 1,
+                    contents: vec![
+                        vec![String::from("地の文3")],
+                        vec![
+                            String::from("大成功3"),
+                            String::from("成功3"),
+                            String::from("失敗3"),
+                            String::from("ファンブル3"),
+                        ],
+                    ],
+                    selected_judge_index: 0,
                 },
             ],
-            selected_index: 0,
+            modes: vec![
+                Mode {
+                    name: String::from("地の文"),
+                    judges: vec![String::from("本文")],
+                },
+                Mode {
+                    name: String::from("探索"),
+                    judges: vec![
+                        String::from("大成功"),
+                        String::from("成功"),
+                        String::from("失敗"),
+                        String::from("ファンブル"),
+                    ],
+                },
+            ],
+            selected_scene_index: 0,
             create_index: 1,
         }
     }
@@ -55,11 +98,12 @@ impl eframe::App for MemoApp {
         ctx.set_pixels_per_point(1.5);
 
         panels::top::show(ctx);
-        panels::side::show(ctx, &self.scenes, &mut self.selected_index);
+        panels::side::show(ctx, &self.scenes, &mut self.selected_scene_index);
         panels::central::show(
             ctx,
+            &self.modes,
             &mut self.scenes,
-            &mut self.selected_index,
+            &mut self.selected_scene_index,
             &mut self.create_index,
         );
     }
