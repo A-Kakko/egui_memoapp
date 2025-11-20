@@ -4,6 +4,7 @@
 pub struct MemoApp {
     scenes: Vec<Scene>,
     selected_index: usize,
+    create_index: usize,
     // #[serde(skip)], // This how you opt-out of serialization of a field
 }
 
@@ -46,6 +47,7 @@ impl Default for MemoApp {
                 },
             ],
             selected_index: 0,
+            create_index: 1,
         }
     }
 }
@@ -93,14 +95,53 @@ impl eframe::App for MemoApp {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ComboBox::from_label("Choose Scene")
-                .selected_text(self.scenes[self.selected_index].title.clone())
-                .show_ui(ui, |ui| {
-                    for (index, scene) in self.scenes.iter().enumerate() {
-                        ui.selectable_value(&mut self.selected_index, index, &scene.title);
-                    }
-                });
+            ui.horizontal(|ui| {
+                /* コンボボックス(シーン選択用) */
+                if let Some(scene) = self.scenes.get(self.selected_index) {
+                    egui::ComboBox::from_label("Choose Scene")
+                        .selected_text(&scene.title)
+                        .show_ui(ui, |ui| {
+                            for (index, scene) in self.scenes.iter().enumerate() {
+                                ui.selectable_value(&mut self.selected_index, index, &scene.title);
+                            }
+                        });
+                }
 
+                /* シーン追加ボタン */
+                if ui
+                    .add(
+                        egui::Button::new(egui::RichText::new("シーン追加").strong())
+                            .fill(egui::Color32::DARK_GREEN),
+                    )
+                    .clicked()
+                {
+                    self.scenes.push(Scene {
+                        title: format!("新規シーン{}", self.create_index),
+                        content: String::new(),
+                    });
+
+                    self.create_index += 1;
+                    self.selected_index = self.scenes.len() - 1;
+                    //add scene
+                }
+
+                /* シーン削除ボタン */
+                if ui
+                    .add(
+                        egui::Button::new(egui::RichText::new("シーン削除").strong())
+                            .fill(egui::Color32::DARK_GREEN),
+                    )
+                    .clicked()
+                {
+                    //delete scene
+                    if self.scenes.len() > 1 {
+                        self.scenes.remove(self.selected_index);
+                        self.selected_index = self.selected_index.saturating_sub(1); //1を引くけど0未満にはならない
+                    }
+                }
+            });
+
+            /* シーン内容 */
             if let Some(scene) = self.scenes.get_mut(self.selected_index) {
                 ui.text_edit_multiline(&mut scene.content);
             }
