@@ -1,5 +1,3 @@
-use egui::{Scene, widgets};
-
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -9,7 +7,7 @@ pub struct MemoApp {
     // #[serde(skip)], // This how you opt-out of serialization of a field
 }
 
-#[derive(serde::Deserialize, serde::Serialize )]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 struct Scene {
     title: String,
     content: String,
@@ -95,12 +93,16 @@ impl eframe::App for MemoApp {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-           egui::ComboBox::from_label("Choose Title")
-            .selected_text(self.scenes[self.selected_index].title)
-            .show_ui(ui,|ui|){
-                    for(index, scene)in self.scenes.iter().enumerate(){
+            egui::ComboBox::from_label("Choose Scene")
+                .selected_text(self.scenes[self.selected_index].title.clone())
+                .show_ui(ui, |ui| {
+                    for (index, scene) in self.scenes.iter().enumerate() {
                         ui.selectable_value(&mut self.selected_index, index, &scene.title);
                     }
+                });
+
+            if let Some(scene) = self.scenes.get_mut(self.selected_index) {
+                ui.text_edit_multiline(&mut scene.content);
             }
         });
     }
