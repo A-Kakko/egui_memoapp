@@ -1,6 +1,11 @@
 #![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 //
+mod app;
+mod panels;
+mod scene;
+
+use app::MemoApp;
 use eframe::egui;
 use std::sync::Arc;
 // When compiling natively:
