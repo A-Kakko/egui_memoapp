@@ -1,4 +1,7 @@
-use crate::scene::{Mode, Scene};
+use crate::{
+    app::AppMode,
+    scene::{Mode, Scene},
+};
 use eframe::egui;
 
 const TEXTBOX_MIN_HEIGHT: f32 = 50.0;
@@ -10,6 +13,8 @@ pub fn show(
     scenes: &mut Vec<Scene>,
     selected_index: &mut usize,
     create_index: &mut usize,
+    app_mode: &AppMode,
+    toasts: &mut egui_notify::Toasts,
 ) {
     egui::CentralPanel::default().show(ctx, |ui| {
         // 上段: シーン選択、モード選択、追加/削除ボタン
@@ -23,7 +28,7 @@ pub fn show(
         ui.horizontal(|ui| {
             let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_index);
             show_judge_buttons(ui, modes, scenes, selected_index, text_height);
-            show_text_editor(ui, scenes, selected_index, text_height);
+            show_text_editor(ui, scenes, selected_index, text_height, app_mode, toasts);
         });
     });
 }
@@ -162,14 +167,37 @@ fn show_text_editor(
     scenes: &mut Vec<Scene>,
     selected_index: &mut usize,
     text_height: f32,
+    app_mode: &AppMode,
+    toasts: &mut egui_notify::Toasts,
 ) {
     if let Some(scene) = scenes.get_mut(*selected_index) {
-        ui.add_sized(
-            [ui.available_width(), text_height],
-            egui::TextEdit::multiline(
-                &mut scene.contents[scene.mode_index][scene.selected_judge_index],
-            ),
-        );
+        if let Some(content) = scene
+            .contents
+            .get_mut(scene.mode_index)
+            .and_then(|c| c.get_mut(scene.selected_judge_index))
+        {
+            match app_mode {
+                AppMode::Edit => {
+                    ui.add_sized(
+                        [ui.available_width(), text_height],
+                        egui::TextEdit::multiline(content),
+                    );
+                }
+                AppMode::Copy => {
+                    let mut dummy = content.clone();
+                    let response =
+                        ui.add(egui::TextEdit::multiline(&mut dummy).desired_width(f32::INFINITY));
+                    // dummyは捨てる（元のcontentは変更されない）
+
+                    if response.clicked() {
+                        ui.ctx().copy_text(content.clone());
+                        toasts
+                            .success("コピーしました")
+                            .duration(Some(std::time::Duration::from_secs(2)));
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -14,6 +14,7 @@ targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
 egui = "0.33.0"
 eframe = { version = "0.33.0", default-features = false, features = ["accesskit", "default_fonts", "glow", "persistence", "wayland", "x11"] }
 log = "0.4.27"
+egui-notify = "0.21.0"
 
 # You only need serde if you want app persistence:
 serde = { version = "1.0.219", features = ["derive"] }

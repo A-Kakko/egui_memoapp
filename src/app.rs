@@ -1,5 +1,6 @@
 use crate::panels;
 use crate::scene::{Mode, Scene};
+use egui_notify::Toasts;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
@@ -8,6 +9,15 @@ pub struct MemoApp {
     modes: Vec<Mode>,
     selected_scene_index: usize,
     create_index: usize,
+    app_mode: AppMode,
+    #[serde(skip)]
+    toasts: Toasts,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, PartialEq)]
+pub enum AppMode {
+    Edit,
+    Copy,
 }
 
 impl Default for MemoApp {
@@ -74,6 +84,8 @@ impl Default for MemoApp {
             ],
             selected_scene_index: 0,
             create_index: 1,
+            app_mode: AppMode::Edit,
+            toasts: Toasts::default(),
         }
     }
 }
@@ -97,7 +109,7 @@ impl eframe::App for MemoApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_pixels_per_point(1.5);
 
-        panels::top::show(ctx);
+        panels::top::show(ctx, &mut self.app_mode);
         panels::side::show(ctx, &self.scenes, &mut self.selected_scene_index);
         panels::central::show(
             ctx,
@@ -105,6 +117,9 @@ impl eframe::App for MemoApp {
             &mut self.scenes,
             &mut self.selected_scene_index,
             &mut self.create_index,
+            &self.app_mode,
+            &mut self.toasts,
         );
+        self.toasts.show(ctx);
     }
 }
