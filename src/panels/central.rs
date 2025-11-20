@@ -82,6 +82,7 @@ fn show_mode_selector(
 }
 
 /// シーン追加/削除ボタン
+#[allow(clippy::collapsible_if)]
 fn show_scene_buttons(
     ui: &mut egui::Ui,
     scenes: &mut Vec<Scene>,
