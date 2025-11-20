@@ -119,7 +119,7 @@ fn show_scene_buttons(
 fn show_judge_buttons(
     ui: &mut egui::Ui,
     modes: &[Mode],
-    scenes: &mut Vec<Scene>,
+    scenes: &mut [Scene],
     selected_index: &mut usize,
     text_height: f32,
 ) {
