@@ -87,7 +87,7 @@ fn setup_custom_fonts(ctx: &egui::Context) {
 
     // 日本語フォント（可変ウェイト）を追加
     fonts.font_data.insert(
-        "noto_sans_jp".to_owned(),
+        "BizinGothicNF".to_owned(),
         egui::FontData::from_static(include_bytes!("../assets/BizinGothicNF-Regular.ttf")).into(),
     );
 
@@ -96,14 +96,14 @@ fn setup_custom_fonts(ctx: &egui::Context) {
         .families
         .entry(egui::FontFamily::Proportional)
         .or_default()
-        .insert(0, "noto_sans_jp".to_owned()); // 一番優先度高く追加
+        .insert(0, "BizinGothicNF".to_owned()); // 一番優先度高く追加
 
     // モノスペースフォントにも日本語フォントを追加
     fonts
         .families
         .entry(egui::FontFamily::Monospace)
         .or_default()
-        .push("noto_sans_jp".to_owned());
+        .push("BizinGothicNF".to_owned());
 
     // フォント設定を適用
     ctx.set_fonts(fonts);

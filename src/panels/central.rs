@@ -1,6 +1,5 @@
 use crate::scene::Scene;
 use eframe::egui;
-
 pub fn show(
     ctx: &egui::Context,
     scenes: &mut Vec<Scene>,
@@ -26,14 +25,12 @@ pub fn show(
                 )
                 .clicked()
             {
-                scenes.push(Scene {
-                    title: format!("新規シーン{}", *create_index),
-                    content: String::new(),
-                });
+                scenes.push(Scene::default());
                 *create_index += 1;
                 *selected_index = scenes.len() - 1;
             }
 
+            #[allow(clippy::collapsible_if)]
             if ui
                 .add(
                     egui::Button::new(egui::RichText::new("シーン削除").strong())

@@ -1,5 +1,5 @@
 use crate::panels;
-use crate::scene::Scene;
+use crate::scene::{Scene, SceneTypes};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
@@ -16,14 +16,17 @@ impl Default for MemoApp {
                 Scene {
                     title: String::from("シーン1"),
                     content: String::from("テスト内容1"),
+                    scene_type: SceneTypes::Explore,
                 },
                 Scene {
                     title: String::from("シーン2"),
                     content: String::from("テスト内容2"),
+                    scene_type: SceneTypes::Explore,
                 },
                 Scene {
                     title: String::from("シーン3"),
                     content: String::from("テスト内容3"),
+                    scene_type: SceneTypes::Explore,
                 },
             ],
             selected_index: 0,
@@ -32,6 +35,7 @@ impl Default for MemoApp {
     }
 }
 
+#[warn(dead_code)]
 impl MemoApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         if let Some(storage) = cc.storage {
@@ -60,4 +64,3 @@ impl eframe::App for MemoApp {
         );
     }
 }
-

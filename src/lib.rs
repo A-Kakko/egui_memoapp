@@ -4,3 +4,4 @@ mod app;
 mod panels;
 mod scene;
 pub use app::MemoApp;
+pub use scene::{Scene, SceneTypes};
