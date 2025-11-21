@@ -4,10 +4,12 @@ use crate::{
     scene::{Mode, Scene},
 };
 use eframe::egui;
+use egui::Button;
 
 const TEXTBOX_MIN_HEIGHT: f32 = 50.0;
 
 /// CentralPanelのメイン表示関数
+#[allow(clippy::too_many_arguments)]
 pub fn show(
     ctx: &egui::Context,
     modes: &[Mode],
@@ -16,11 +18,13 @@ pub fn show(
     create_index: &mut usize,
     app_mode: &AppMode,
     toasts: &mut egui_notify::Toasts,
+    editing_scene_name_modal_open: &mut bool,
 ) {
     egui::CentralPanel::default().show(ctx, |ui| {
         // 上段: シーン選択、モード選択、追加/削除ボタン
         ui.horizontal(|ui| {
             show_scene_selector(ui, scenes, selected_index);
+            show_scene_edit_button(ui, editing_scene_name_modal_open);
             show_mode_selector(ui, modes, scenes, selected_index);
             show_scene_buttons(ui, scenes, selected_index, create_index);
         });
@@ -89,6 +93,18 @@ fn show_mode_selector(
         }
     }
 }
+/// シーン名編集ボタン
+fn show_scene_edit_button(ui: &mut egui::Ui, editing_scene_name_modal_open: &mut bool) {
+    if ui
+        .add(
+            egui::Button::new(egui::RichText::new("✏ 編集").strong())
+                .fill(egui::Color32::DARK_BLUE),
+        )
+        .clicked()
+    {
+        *editing_scene_name_modal_open = true;
+    }
+}
 
 /// シーン追加/削除ボタン
 #[allow(clippy::collapsible_if)]
@@ -113,7 +129,7 @@ fn show_scene_buttons(
     if ui
         .add(
             egui::Button::new(egui::RichText::new("シーン削除").strong())
-                .fill(egui::Color32::DARK_GREEN),
+                .fill(egui::Color32::DARK_RED),
         )
         .clicked()
     {
