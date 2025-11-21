@@ -4,6 +4,7 @@
 mod app;
 mod panels;
 mod scene;
+mod widgets;
 
 use app::MemoApp;
 use eframe::egui;

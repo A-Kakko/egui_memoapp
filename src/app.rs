@@ -1,7 +1,15 @@
 use crate::panels;
 use crate::scene::{Mode, Scene};
 use egui_notify::Toasts;
-
+//TODO:ホイールでBox操作できるか確認
+//TODO:プレイヤー追加
+//TODO:アイコン/名前表示
+//TODO:ファイルIO
+//TODO:パーサー
+//TODO:それのやり取りするInterface(Trate)
+//TODO:設定ファイル追加
+//TODO:シーン名編集（できればドラックアンドドロップ）
+//TODO:ショートカットキー
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct MemoApp {

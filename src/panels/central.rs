@@ -1,3 +1,4 @@
+use crate::widgets::combobox::add_wheel;
 use crate::{
     app::AppMode,
     scene::{Mode, Scene},
@@ -41,13 +42,15 @@ fn show_scene_selector(ui: &mut egui::Ui, scenes: &[Scene], selected_index: &mut
     }
 
     if let Some(scene) = scenes.get(*selected_index) {
-        egui::ComboBox::from_id_salt("scene_combo")
+        let combo_response = egui::ComboBox::from_id_salt("scene_combo")
             .selected_text(&scene.title)
             .show_ui(ui, |ui| {
                 for (index, scene) in scenes.iter().enumerate() {
                     ui.selectable_value(selected_index, index, &scene.title);
                 }
-            });
+            })
+            .response;
+        add_wheel(ui, selected_index, &scenes, &combo_response);
     }
 
     if ui.button("▶").clicked() {
@@ -67,7 +70,7 @@ fn show_mode_selector(
     if let Some(mode_index) = current_mode_index {
         if let Some(current_mode) = modes.get(mode_index) {
             ui.label("Choose Mode:");
-            egui::ComboBox::from_id_source("mode_combo")
+            let combo_resp = egui::ComboBox::from_id_source("mode_combo")
                 .selected_text(&current_mode.name)
                 .show_ui(ui, |ui| {
                     for (index, mode) in modes.iter().enumerate() {
@@ -81,7 +84,8 @@ fn show_mode_selector(
                             }
                         }
                     }
-                });
+                })
+                .response;
         }
     }
 }

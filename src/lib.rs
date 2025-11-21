@@ -3,5 +3,6 @@
 mod app;
 mod panels;
 mod scene;
+mod widgets;
 pub use app::MemoApp;
 pub use scene::{Mode, Scene};
