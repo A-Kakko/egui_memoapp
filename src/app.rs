@@ -16,7 +16,6 @@ pub struct MemoApp {
     scenes: Vec<Scene>,
     modes: Vec<Mode>,
     selected_scene_index: usize,
-    create_index: usize,
     app_mode: AppMode,
     player: Vec<Player>,
     #[serde(skip)]
@@ -25,6 +24,8 @@ pub struct MemoApp {
     editing_scene_name_modal_open: bool,
     #[serde(skip)]
     editing_scene_name_buffer: String,
+    #[serde(skip)]
+    create_index: usize,
 }
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Player {

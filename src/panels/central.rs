@@ -90,6 +90,11 @@ fn show_mode_selector(
                     }
                 })
                 .response;
+
+            // ホイールでモード切り替え
+            if let Some(scene) = scenes.get_mut(*selected_index) {
+                add_wheel(ui, &mut scene.mode_index, modes, &combo_resp);
+            }
         }
     }
 }
