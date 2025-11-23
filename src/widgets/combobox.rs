@@ -1,6 +1,6 @@
-use egui::{ComboBox, Response, Ui};
+use egui::{Response, Ui};
 
-pub fn add_wheel<T>(ui: &mut Ui, current: &mut usize, items: &[T], response: &Response) {
+pub fn enable_wheel<T>(ui: &mut Ui, current: &mut usize, items: &[T], response: &Response) {
     // マウスホイールでの操作を追加
     if response.hovered() {
         let scroll = ui.ctx().input(|i| i.raw_scroll_delta.y);

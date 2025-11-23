@@ -1,11 +1,13 @@
-use crate::widgets::combobox::add_wheel;
+//TODO:＋ボタンの幅を合わせる
+use crate::widgets::combobox::enable_wheel;
 use crate::{
     app::{AppMode, Player},
     scene::{Mode, Scene},
 };
+#[allow(unused_imports)]
 use eframe::{App, egui};
 
-const TEXTBOX_MIN_HEIGHT: f32 = 50.0;
+const TEXTBOX_MIN_HEIGHT: f32 = 60.0;
 
 /// CentralPanelのメイン表示関数
 #[allow(clippy::too_many_arguments)]
@@ -13,7 +15,7 @@ pub fn show(
     ctx: &egui::Context,
     modes: &[Mode],
     scenes: &mut Vec<Scene>,
-    player: &mut Vec<Player>,
+    player: &mut [Player],
     selected_scene_index: &mut usize,
     create_index: &mut usize,
     app_mode: &AppMode,
@@ -76,7 +78,7 @@ fn show_scene_selector(ui: &mut egui::Ui, scenes: &[Scene], selected_index: &mut
                 }
             })
             .response;
-        add_wheel(ui, selected_index, &scenes, &combo_response);
+        enable_wheel(ui, selected_index, &scenes, &combo_response);
     }
 
     if ui.button("▶").clicked() {
@@ -115,7 +117,7 @@ fn show_mode_selector(
 
             // ホイールでモード切り替え
             if let Some(scene) = scenes.get_mut(*selected_index) {
-                add_wheel(ui, &mut scene.mode_index, modes, &combo_resp);
+                enable_wheel(ui, &mut scene.mode_index, modes, &combo_resp);
             }
         }
     }
@@ -220,9 +222,9 @@ fn show_player_name(ui: &mut egui::Ui, scenes: &[Scene]) {
 /// テキストエディタ（マルチライン）
 fn show_text_editor(
     ui: &mut egui::Ui,
-    scenes: &mut Vec<Scene>,
+    scenes: &mut [Scene],
     selected_index: &mut usize,
-    player: &mut Vec<Player>,
+    player: &mut [Player],
     text_height: f32,
     app_mode: &AppMode,
     toasts: &mut egui_notify::Toasts,
