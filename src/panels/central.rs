@@ -3,7 +3,7 @@ use crate::{
     app::{AppMode, Player},
     scene::{Mode, Scene},
 };
-use eframe::egui;
+use eframe::{App, egui};
 
 const TEXTBOX_MIN_HEIGHT: f32 = 50.0;
 
@@ -34,17 +34,27 @@ pub fn show(
             let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_scene_index);
             show_judge_buttons(ui, modes, scenes, selected_scene_index, text_height);
             ui.vertical(|ui| {
-                show_text_editor(
-                    ui,
-                    scenes,
-                    selected_scene_index,
-                    player,
-                    text_height,
-                    app_mode,
-                    toasts,
-                );
+                ui.horizontal(|ui| {
+                    ui.vertical(|ui| {
+                        show_player_icon(ui, scenes); // アイコン
+                        show_player_name(ui, scenes);
+                    });
+                    show_text_editor(
+                        ui,
+                        scenes,
+                        selected_scene_index,
+                        player,
+                        text_height,
+                        app_mode,
+                        toasts,
+                    );
+                });
                 ui.add_space(5.0);
-                show_add_textbox_button(ui, &mut scenes[*selected_scene_index].player_index);
+                show_add_textbox_button(
+                    ui,
+                    &mut scenes[*selected_scene_index].player_index,
+                    app_mode,
+                );
             });
         });
     });
@@ -199,6 +209,14 @@ fn show_judge_buttons(
     );
 }
 
+fn show_player_icon(ui: &mut egui::Ui, scenes: &[Scene]) {
+    //todo!()
+}
+
+fn show_player_name(ui: &mut egui::Ui, scenes: &[Scene]) {
+    //todo!()
+}
+
 /// テキストエディタ（マルチライン）
 fn show_text_editor(
     ui: &mut egui::Ui,
@@ -224,8 +242,10 @@ fn show_text_editor(
                 }
                 AppMode::Copy => {
                     let mut dummy = content.clone();
-                    let response =
-                        ui.add(egui::TextEdit::multiline(&mut dummy).desired_width(f32::INFINITY));
+                    let response = ui.add_sized(
+                        [ui.available_width(), text_height],
+                        egui::TextEdit::multiline(&mut dummy).desired_width(f32::INFINITY),
+                    );
                     // dummyは捨てる（元のcontentは変更されない）
 
                     if response.clicked() {
@@ -240,15 +260,22 @@ fn show_text_editor(
     }
 }
 
-fn show_add_textbox_button(ui: &mut egui::Ui, index: &mut usize) {
-    if ui
-        .add_sized(
-            [ui.available_width(), 0.0],
-            egui::Button::new(egui::RichText::new("+").strong()).fill(egui::Color32::DARK_GRAY),
-        )
-        .clicked()
-    {
-        *index += 1;
+fn show_add_textbox_button(ui: &mut egui::Ui, index: &mut usize, app_mode: &AppMode) {
+    match app_mode {
+        AppMode::Edit => {
+            if ui
+                .add_sized(
+                    [ui.available_width(), 0.0],
+                    egui::Button::new(egui::RichText::new("+").strong())
+                        .fill(egui::Color32::DARK_GRAY),
+                )
+                .clicked()
+            {
+                *index += 1;
+            }
+        }
+
+        AppMode::Copy => { /* Nop */ }
     }
 }
 

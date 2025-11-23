@@ -5,6 +5,8 @@ use egui_notify::Toasts;
 use std::path::PathBuf;
 /*
 TODO:プレイヤー追加
+TODO:これの描写追加
+TODO:データ構造どうする？追加ボタンは作った
 TODO:アイコン/名前表示
 TODO:ファイルIO
 TODO:パーサー
