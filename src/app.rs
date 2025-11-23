@@ -3,13 +3,15 @@ use crate::scene::{Mode, Scene};
 use egui::Key;
 use egui_notify::Toasts;
 use std::path::PathBuf;
-//TODO:プレイヤー追加
-//TODO:アイコン/名前表示
-//TODO:ファイルIO
-//TODO:パーサー
-//TODO:それのやり取りするInterface(Trate)
-//TODO:設定ファイル追加
-//TODO:ショートカットキー(一部追加済)
+/*
+TODO:プレイヤー追加
+TODO:アイコン/名前表示
+TODO:ファイルIO
+TODO:パーサー
+TODO:それのやり取りするInterface(Trate)
+TODO:設定ファイル追加
+TODO:ショートカットキー(一部追加済)
+*/
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct MemoApp {
@@ -27,6 +29,7 @@ pub struct MemoApp {
     #[serde(skip)]
     create_index: usize,
 }
+
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Player {
     name: String,
@@ -48,6 +51,7 @@ impl Default for Player {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 impl Default for MemoApp {
     fn default() -> Self {
         Self {
@@ -63,8 +67,16 @@ impl Default for MemoApp {
                             String::from("失敗1"),
                             String::from("ファンブル1"),
                         ],
+                        vec![
+                            String::from("大成功1"),
+                            String::from("成功1"),
+                            String::from("失敗1"),
+                            String::from("ファンブル1"),
+                        ],
                     ],
                     selected_judge_index: 0,
+                    player_index: 0,
+                    contents_index: 0,
                 },
                 Scene {
                     title: String::from("シーン2"),
@@ -77,8 +89,16 @@ impl Default for MemoApp {
                             String::from("失敗2"),
                             String::from("ファンブル2"),
                         ],
+                        vec![
+                            String::from("大成功1"),
+                            String::from("成功1"),
+                            String::from("失敗1"),
+                            String::from("ファンブル1"),
+                        ],
                     ],
                     selected_judge_index: 0,
+                    player_index: 0,
+                    contents_index: 0,
                 },
                 Scene {
                     title: String::from("シーン3"),
@@ -91,14 +111,31 @@ impl Default for MemoApp {
                             String::from("失敗3"),
                             String::from("ファンブル3"),
                         ],
+                        vec![
+                            String::from("大成功1"),
+                            String::from("成功1"),
+                            String::from("失敗1"),
+                            String::from("ファンブル1"),
+                        ],
                     ],
                     selected_judge_index: 0,
+                    player_index: 0,
+                    contents_index: 0,
                 },
             ],
             modes: vec![
                 Mode {
                     name: String::from("地の文"),
                     judges: vec![String::from("本文")],
+                },
+                Mode {
+                    name: String::from("プレイヤー"),
+                    judges: vec![
+                        String::from("大成功"),
+                        String::from("成功"),
+                        String::from("失敗"),
+                        String::from("ファンブル"),
+                    ],
                 },
                 Mode {
                     name: String::from("探索"),
@@ -114,10 +151,28 @@ impl Default for MemoApp {
             create_index: 1,
             app_mode: AppMode::Edit,
             toasts: Toasts::default(),
-            player: vec![Player {
-                name: String::from("デフォルト太郎"),
-                icon_path: None,
-            }],
+            player: vec![
+                Player {
+                    name: String::from("地の文"),
+                    icon_path: None,
+                },
+                Player {
+                    name: String::from("探偵"),
+                    icon_path: None,
+                },
+                Player {
+                    name: String::from("助手"),
+                    icon_path: None,
+                },
+                Player {
+                    name: String::from("医者"),
+                    icon_path: None,
+                },
+                Player {
+                    name: String::from("怪盗"),
+                    icon_path: None,
+                },
+            ],
             editing_scene_name_modal_open: false,
             editing_scene_name_buffer: String::new(),
         }
@@ -191,11 +246,12 @@ impl eframe::App for MemoApp {
             ctx,
             &self.modes,
             &mut self.scenes,
+            &mut self.player,
             &mut self.selected_scene_index,
             &mut self.create_index,
             &self.app_mode,
-            &mut self.toasts,
             &mut self.editing_scene_name_modal_open,
+            &mut self.toasts,
         );
 
         // モーダルが新しく開かれた場合のみバッファを初期化

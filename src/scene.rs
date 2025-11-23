@@ -2,13 +2,15 @@
 pub struct Scene {
     /*
      * title:シーン名
-     * mode_index:表示テキスト
-     * contents:シーンタイプ(探索/地の文)
+     * mode_index:選択中のモードインデックス
      * selected_judge_index:選択中の判定インデックス
+     * contents:シーンタイプ(探索/地の文)
      */
     pub title: String,
     pub mode_index: usize,
     pub selected_judge_index: usize,
+    pub player_index: usize,
+    pub contents_index: usize,
     pub contents: Vec<Vec<String>>,
 }
 
@@ -33,21 +35,21 @@ pub struct Mode {
 // }
 
 impl Scene {
-    pub fn new(index: usize) -> Self {
+    /// modesから動的にcontentsを生成する
+    /// 各モードのjudgesの数だけString::new()を作成
+    pub fn new(index: usize, modes: &[Mode]) -> Self {
+        let contents = modes
+            .iter()
+            .map(|mode| vec![String::new(); mode.judges.len()])
+            .collect();
+
         Self {
             title: format!("新規シーン{}", index),
             mode_index: 1,
-            contents: vec![
-                vec![String::new()], // 地の文用（1つ）
-                vec![String::new(), String::new(), String::new(), String::new()], // 探索用（4つ）
-            ],
+            contents,
             selected_judge_index: 0,
+            player_index: 0,
+            contents_index: 0,
         }
-    }
-}
-
-impl Default for Scene {
-    fn default() -> Self {
-        Self::new(0)
     }
 }

@@ -1,10 +1,9 @@
 use crate::widgets::combobox::add_wheel;
 use crate::{
-    app::AppMode,
+    app::{AppMode, Player},
     scene::{Mode, Scene},
 };
 use eframe::egui;
-use egui::Button;
 
 const TEXTBOX_MIN_HEIGHT: f32 = 50.0;
 
@@ -14,26 +13,39 @@ pub fn show(
     ctx: &egui::Context,
     modes: &[Mode],
     scenes: &mut Vec<Scene>,
-    selected_index: &mut usize,
+    player: &mut Vec<Player>,
+    selected_scene_index: &mut usize,
     create_index: &mut usize,
     app_mode: &AppMode,
-    toasts: &mut egui_notify::Toasts,
     editing_scene_name_modal_open: &mut bool,
+    toasts: &mut egui_notify::Toasts,
 ) {
     egui::CentralPanel::default().show(ctx, |ui| {
         // 上段: シーン選択、モード選択、追加/削除ボタン
         ui.horizontal(|ui| {
-            show_scene_selector(ui, scenes, selected_index);
+            show_scene_selector(ui, scenes, selected_scene_index);
             show_scene_edit_button(ui, editing_scene_name_modal_open);
-            show_mode_selector(ui, modes, scenes, selected_index);
-            show_scene_buttons(ui, scenes, selected_index, create_index);
+            show_mode_selector(ui, modes, scenes, selected_scene_index);
+            show_scene_buttons(ui, modes, scenes, selected_scene_index, create_index);
         });
 
         // 下段: 判定ボタンとテキストエディタ
         ui.horizontal(|ui| {
-            let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_index);
-            show_judge_buttons(ui, modes, scenes, selected_index, text_height);
-            show_text_editor(ui, scenes, selected_index, text_height, app_mode, toasts);
+            let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_scene_index);
+            show_judge_buttons(ui, modes, scenes, selected_scene_index, text_height);
+            ui.vertical(|ui| {
+                show_text_editor(
+                    ui,
+                    scenes,
+                    selected_scene_index,
+                    player,
+                    text_height,
+                    app_mode,
+                    toasts,
+                );
+                ui.add_space(5.0);
+                show_add_textbox_button(ui, &mut scenes[*selected_scene_index].player_index);
+            });
         });
     });
 }
@@ -66,7 +78,7 @@ fn show_scene_selector(ui: &mut egui::Ui, scenes: &[Scene], selected_index: &mut
 fn show_mode_selector(
     ui: &mut egui::Ui,
     modes: &[Mode],
-    scenes: &mut Vec<Scene>,
+    scenes: &mut [Scene],
     selected_index: &mut usize,
 ) {
     // 借用エラー回避のため先にmode_indexを取得
@@ -115,6 +127,7 @@ fn show_scene_edit_button(ui: &mut egui::Ui, editing_scene_name_modal_open: &mut
 #[allow(clippy::collapsible_if)]
 fn show_scene_buttons(
     ui: &mut egui::Ui,
+    modes: &[Mode],
     scenes: &mut Vec<Scene>,
     selected_index: &mut usize,
     create_index: &mut usize,
@@ -126,7 +139,7 @@ fn show_scene_buttons(
         )
         .clicked()
     {
-        scenes.push(Scene::new(*create_index));
+        scenes.push(Scene::new(*create_index, modes));
         *create_index += 1;
         *selected_index = scenes.len() - 1; // 新規シーンを選択
     }
@@ -191,6 +204,7 @@ fn show_text_editor(
     ui: &mut egui::Ui,
     scenes: &mut Vec<Scene>,
     selected_index: &mut usize,
+    player: &mut Vec<Player>,
     text_height: f32,
     app_mode: &AppMode,
     toasts: &mut egui_notify::Toasts,
@@ -223,6 +237,18 @@ fn show_text_editor(
                 }
             }
         }
+    }
+}
+
+fn show_add_textbox_button(ui: &mut egui::Ui, index: &mut usize) {
+    if ui
+        .add_sized(
+            [ui.available_width(), 0.0],
+            egui::Button::new(egui::RichText::new("+").strong()).fill(egui::Color32::DARK_GRAY),
+        )
+        .clicked()
+    {
+        *index += 1;
     }
 }
 
