@@ -1,4 +1,5 @@
-//TODO:＋ボタンの幅を合わせる
+use crate::constants::constants::*;
+use crate::scene;
 use crate::widgets::combobox::enable_wheel;
 use crate::{
     app::{AppMode, Player},
@@ -6,8 +7,7 @@ use crate::{
 };
 #[allow(unused_imports)]
 use eframe::{App, egui};
-
-const TEXTBOX_MIN_HEIGHT: f32 = 60.0;
+use egui::widgets;
 
 /// CentralPanelのメイン表示関数
 #[allow(clippy::too_many_arguments)]
