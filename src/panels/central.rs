@@ -20,6 +20,7 @@ pub fn show(
     create_index: &mut usize,
     app_mode: &AppMode,
     editing_scene_name_modal_open: &mut bool,
+    editing_scene_delete_modal_open: &mut bool,
     toasts: &mut egui_notify::Toasts,
 ) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -28,7 +29,14 @@ pub fn show(
             show_scene_selector(ui, scenes, selected_scene_index);
             show_scene_edit_button(ui, editing_scene_name_modal_open);
             show_mode_selector(ui, modes, scenes, selected_scene_index);
-            show_scene_buttons(ui, modes, scenes, selected_scene_index, create_index);
+            show_scene_buttons(
+                ui,
+                modes,
+                scenes,
+                selected_scene_index,
+                create_index,
+                editing_scene_delete_modal_open,
+            );
         });
 
         // 下段: 判定ボタンとテキストエディタ
@@ -143,6 +151,7 @@ fn show_scene_buttons(
     scenes: &mut Vec<Scene>,
     selected_index: &mut usize,
     create_index: &mut usize,
+    editing_scene_delete_modal_open: &mut bool,
 ) {
     if ui
         .add(
@@ -164,8 +173,7 @@ fn show_scene_buttons(
         .clicked()
     {
         if scenes.len() > 1 {
-            scenes.remove(*selected_index);
-            *selected_index = selected_index.saturating_sub(1);
+            *editing_scene_delete_modal_open = true;
         }
     }
 }

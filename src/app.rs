@@ -27,6 +27,8 @@ pub struct MemoApp {
     #[serde(skip)]
     editing_scene_name_modal_open: bool,
     #[serde(skip)]
+    editing_scene_delete_modal_open: bool,
+    #[serde(skip)]
     editing_scene_name_buffer: String,
     #[serde(skip)]
     create_index: usize,
@@ -176,6 +178,7 @@ impl Default for MemoApp {
                 },
             ],
             editing_scene_name_modal_open: false,
+            editing_scene_delete_modal_open: false,
             editing_scene_name_buffer: String::new(),
         }
     }
@@ -229,6 +232,30 @@ impl MemoApp {
                 });
             });
     }
+
+    fn show_scene_delete_modal(&mut self, ctx: &egui::Context) {
+        egui::Window::new("シーンを削除しますか？")
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    if ui.button("OK").clicked() || ctx.input(|i| i.key_pressed(Key::Enter)) {
+                        self.scenes.remove(self.selected_scene_index);
+                        self.selected_scene_index = self.selected_scene_index.saturating_sub(1);
+                        // モーダルを閉じる
+                        self.editing_scene_delete_modal_open = false;
+                    }
+
+                    if ui.button("キャンセル").clicked()
+                        || ctx.input(|i| i.key_pressed(Key::Escape))
+                    {
+                        // モーダルを閉じる
+                        self.editing_scene_delete_modal_open = false;
+                    }
+                });
+            });
+    }
 }
 
 impl eframe::App for MemoApp {
@@ -240,7 +267,7 @@ impl eframe::App for MemoApp {
         ctx.set_pixels_per_point(1.5);
 
         // 前のフレームでモーダルが開いていたかを記録
-        let was_modal_open = self.editing_scene_name_modal_open;
+        let was_edit_modal_open = self.editing_scene_name_modal_open;
 
         panels::top::show(ctx, &mut self.app_mode);
         panels::side::show(ctx, &self.scenes, &mut self.selected_scene_index);
@@ -248,16 +275,16 @@ impl eframe::App for MemoApp {
             ctx,
             &self.modes,
             &mut self.scenes,
-            &mut self.player,
             &mut self.selected_scene_index,
             &mut self.create_index,
             &self.app_mode,
             &mut self.editing_scene_name_modal_open,
+            &mut self.editing_scene_delete_modal_open,
             &mut self.toasts,
         );
 
         // モーダルが新しく開かれた場合のみバッファを初期化
-        if self.editing_scene_name_modal_open && !was_modal_open {
+        if self.editing_scene_name_modal_open && !was_edit_modal_open {
             if let Some(scene) = self.scenes.get(self.selected_scene_index) {
                 self.editing_scene_name_buffer = scene.title.clone();
             }
@@ -266,6 +293,11 @@ impl eframe::App for MemoApp {
         // シーン名編集モーダル
         if self.editing_scene_name_modal_open {
             self.show_scene_name_edit_modal(ctx);
+        }
+
+        // シーン削除確認モーダル
+        if self.editing_scene_delete_modal_open {
+            self.show_scene_delete_modal(ctx);
         }
 
         self.toasts.show(ctx);
