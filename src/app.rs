@@ -93,6 +93,7 @@ impl Default for MemoApp {
                             icon_path: None,
                         }],
                     ],
+                    layout_cache: None,
                 },
                 Scene {
                     title: String::from("シーン2"),
@@ -127,6 +128,7 @@ impl Default for MemoApp {
                             icon_path: None,
                         }],
                     ],
+                    layout_cache: None,
                 },
                 Scene {
                     title: String::from("シーン3"),
@@ -161,6 +163,7 @@ impl Default for MemoApp {
                             icon_path: None,
                         }],
                     ],
+                    layout_cache: None,
                 },
             ],
             modes: vec![

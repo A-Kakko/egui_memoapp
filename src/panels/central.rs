@@ -3,7 +3,7 @@ use crate::scene;
 use crate::widgets::combobox::enable_wheel;
 use crate::{
     app::{AppMode, Player_default},
-    scene::{Mode, Scene},
+    scene::{LayoutCache, Mode, Scene},
 };
 #[allow(unused_imports)]
 use eframe::{App, egui};
@@ -95,6 +95,8 @@ fn show_mode_selector(
                                         slot.selected_judge_index = 0;
                                     }
                                 }
+                                // キャッシュを無効化
+                                scene_mut.layout_cache = None;
                             }
                         }
                     }
@@ -168,26 +170,72 @@ fn show_all_slots(
     ui.vertical(|ui| {
         let mut max_judge_width: f32 = 0.0;
         let mut max_icon_width: f32 = 0.0;
+        let mut cache_valid = false;
 
+        // キャッシュのチェック
         if let Some(scene) = scenes.get(*selected_scene_index) {
-            let mode_index = scene.mode_index;
-            if let Some(mode_slots) = scene.contents.get(mode_index) {
-                let slot_count = mode_slots.len();
+            if let Some(cache) = &scene.layout_cache {
+                if cache.mode_index == scene.mode_index {
+                    // キャッシュが有効
+                    max_judge_width = cache.judge_width;
+                    max_icon_width = cache.icon_width;
+                    cache_valid = true;
+                }
+            }
+        }
 
-                // 各スロットを表示し、最大幅を記録
-                for slot_index in 0..slot_count {
-                    let (judge_width, icon_width) = show_slot(
-                        ui,
-                        modes,
-                        scenes,
-                        selected_scene_index,
-                        slot_index,
-                        app_mode,
-                        toasts,
-                    );
-                    max_judge_width = max_judge_width.max(judge_width);
-                    max_icon_width = max_icon_width.max(icon_width);
-                    ui.add_space(3.0);
+        // キャッシュが無効な場合は再計算
+        if !cache_valid {
+            if let Some(scene) = scenes.get(*selected_scene_index) {
+                let mode_index = scene.mode_index;
+                if let Some(mode_slots) = scene.contents.get(mode_index) {
+                    let slot_count = mode_slots.len();
+
+                    // 各スロットを表示し、最大幅を記録
+                    for slot_index in 0..slot_count {
+                        let (judge_width, icon_width) = show_slot(
+                            ui,
+                            modes,
+                            scenes,
+                            selected_scene_index,
+                            slot_index,
+                            app_mode,
+                            toasts,
+                        );
+                        max_judge_width = max_judge_width.max(judge_width);
+                        max_icon_width = max_icon_width.max(icon_width);
+                        ui.add_space(3.0);
+                    }
+
+                    // キャッシュを更新
+                    if let Some(scene_mut) = scenes.get_mut(*selected_scene_index) {
+                        scene_mut.layout_cache = Some(LayoutCache {
+                            judge_width: max_judge_width,
+                            icon_width: max_icon_width,
+                            mode_index: scene_mut.mode_index,
+                        });
+                    }
+                }
+            }
+        } else {
+            // キャッシュが有効な場合でもスロットを描画
+            if let Some(scene) = scenes.get(*selected_scene_index) {
+                let mode_index = scene.mode_index;
+                if let Some(mode_slots) = scene.contents.get(mode_index) {
+                    let slot_count = mode_slots.len();
+
+                    for slot_index in 0..slot_count {
+                        show_slot(
+                            ui,
+                            modes,
+                            scenes,
+                            selected_scene_index,
+                            slot_index,
+                            app_mode,
+                            toasts,
+                        );
+                        ui.add_space(3.0);
+                    }
                 }
             }
         }
@@ -421,6 +469,8 @@ fn show_add_textbox_button(
                         mode_slots.push(new_slot);
                     }
                 }
+                // スロット追加時はキャッシュを無効化（幅が変わる可能性がある）
+                scene.layout_cache = None;
             }
         }
 

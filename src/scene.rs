@@ -54,16 +54,30 @@ impl TextSlot {
     }
 }
 
+/// レイアウトキャッシュ（モード変更時に無効化される）
+#[derive(Clone, Debug)]
+pub struct LayoutCache {
+    /// 判定ボタンエリアの幅
+    pub judge_width: f32,
+    /// アイコンエリアの幅
+    pub icon_width: f32,
+    /// このキャッシュが有効なモードのインデックス
+    pub mode_index: usize,
+}
+
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Scene {
     /*
      * title:シーン名
      * mode_index:選択中のモードインデックス
      * contents: [mode_index][slot_index] -> TextSlot
+     * layout_cache: レイアウト幅のキャッシュ（シリアライズ対象外）
      */
     pub title: String,
     pub mode_index: usize,
     pub contents: Vec<Vec<TextSlot>>,
+    #[serde(skip)]
+    pub layout_cache: Option<LayoutCache>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -105,6 +119,7 @@ impl Scene {
             title: format!("新規シーン{}", index),
             mode_index: 1,
             contents,
+            layout_cache: None,
         }
     }
 }
