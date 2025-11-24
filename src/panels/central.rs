@@ -2,7 +2,7 @@ use crate::constants::constants::*;
 use crate::scene;
 use crate::widgets::combobox::enable_wheel;
 use crate::{
-    app::{AppMode, Player},
+    app::{AppMode, Player_default},
     scene::{Mode, Scene},
 };
 #[allow(unused_imports)]
@@ -15,7 +15,6 @@ pub fn show(
     ctx: &egui::Context,
     modes: &[Mode],
     scenes: &mut Vec<Scene>,
-    player: &mut [Player],
     selected_scene_index: &mut usize,
     create_index: &mut usize,
     app_mode: &AppMode,
@@ -39,34 +38,8 @@ pub fn show(
             );
         });
 
-        // 下段: 判定ボタンとテキストエディタ
-        ui.horizontal(|ui| {
-            let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_scene_index);
-            show_judge_buttons(ui, modes, scenes, selected_scene_index, text_height);
-            ui.vertical(|ui| {
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        show_player_icon(ui, scenes); // アイコン
-                        show_player_name(ui, scenes);
-                    });
-                    show_text_editor(
-                        ui,
-                        scenes,
-                        selected_scene_index,
-                        player,
-                        text_height,
-                        app_mode,
-                        toasts,
-                    );
-                });
-                ui.add_space(5.0);
-                show_add_textbox_button(
-                    ui,
-                    &mut scenes[*selected_scene_index].player_index,
-                    app_mode,
-                );
-            });
-        });
+        // 下段: 全スロットを縦に並べて表示
+        show_all_slots(ui, modes, scenes, selected_scene_index, app_mode, toasts);
     });
 }
 
@@ -116,7 +89,12 @@ fn show_mode_selector(
                         {
                             if let Some(scene_mut) = scenes.get_mut(*selected_index) {
                                 scene_mut.mode_index = index;
-                                scene_mut.selected_judge_index = 0; // モード変更時は判定をリセット
+                                // モード変更時は各スロットの判定をリセット
+                                if let Some(mode_slots) = scene_mut.contents.get_mut(index) {
+                                    for slot in mode_slots.iter_mut() {
+                                        slot.selected_judge_index = 0;
+                                    }
+                                }
                             }
                         }
                     }
@@ -178,14 +156,134 @@ fn show_scene_buttons(
     }
 }
 
-/// 判定ボタン群（大成功/成功/失敗/ファンブルなど）
-fn show_judge_buttons(
+/// 全スロット表示（縦に並べて表示 + 追加ボタン）
+fn show_all_slots(
+    ui: &mut egui::Ui,
+    modes: &[Mode],
+    scenes: &mut Vec<Scene>,
+    selected_scene_index: &mut usize,
+    app_mode: &AppMode,
+    toasts: &mut egui_notify::Toasts,
+) {
+    ui.vertical(|ui| {
+        let mut max_judge_width: f32 = 0.0;
+        let mut max_icon_width: f32 = 0.0;
+
+        if let Some(scene) = scenes.get(*selected_scene_index) {
+            let mode_index = scene.mode_index;
+            if let Some(mode_slots) = scene.contents.get(mode_index) {
+                let slot_count = mode_slots.len();
+
+                // 各スロットを表示し、最大幅を記録
+                for slot_index in 0..slot_count {
+                    let (judge_width, icon_width) = show_slot(
+                        ui,
+                        modes,
+                        scenes,
+                        selected_scene_index,
+                        slot_index,
+                        app_mode,
+                        toasts,
+                    );
+                    max_judge_width = max_judge_width.max(judge_width);
+                    max_icon_width = max_icon_width.max(icon_width);
+                    ui.add_space(3.0);
+                }
+            }
+        }
+
+        // +ボタン（左余白を判定ボタン幅+アイコン幅に合わせる）
+        show_add_slot_button(
+            ui,
+            scenes,
+            selected_scene_index,
+            modes,
+            app_mode,
+            max_judge_width,
+            max_icon_width,
+        );
+    });
+}
+
+/// 1つのスロットを表示（判定ボタン + アイコン + テキストエディタ）
+/// 返り値: (判定ボタン幅, アイコンエリア幅)
+fn show_slot(
     ui: &mut egui::Ui,
     modes: &[Mode],
     scenes: &mut [Scene],
     selected_index: &mut usize,
-    text_height: f32,
+    slot_index: usize,
+    app_mode: &AppMode,
+    toasts: &mut egui_notify::Toasts,
+) -> (f32, f32) {
+    let mut judge_width = 0.0;
+    let mut icon_width = 0.0;
+
+    ui.horizontal(|ui| {
+        let text_height = calc_height_from_buttons(ui, modes, scenes, *selected_index);
+
+        // このスロット用の判定ボタン
+        let judge_response =
+            show_judge_buttons_for_slot(ui, modes, scenes, selected_index, slot_index, text_height);
+        judge_width = judge_response.rect.width();
+
+        // アイコン/名前のエリア
+        let icon_response = ui.allocate_ui_with_layout(
+            egui::vec2(0.0, text_height),
+            egui::Layout::top_down(egui::Align::Min),
+            |ui| {
+                show_player_icon(ui, scenes);
+                show_player_name(ui, scenes);
+            },
+        );
+        icon_width = icon_response.response.rect.width();
+
+        show_text_editor_for_slot(
+            ui,
+            scenes,
+            selected_index,
+            slot_index,
+            text_height,
+            app_mode,
+            toasts,
+        );
+    });
+
+    (judge_width, icon_width)
+}
+
+/// +ボタン（スロット追加）
+fn show_add_slot_button(
+    ui: &mut egui::Ui,
+    scenes: &mut Vec<Scene>,
+    selected_scene_index: &mut usize,
+    modes: &[Mode],
+    app_mode: &AppMode,
+    judge_width: f32,
+    icon_width: f32,
 ) {
+    ui.horizontal(|ui| {
+        // 判定ボタンと同じ幅を確保
+        ui.allocate_space(egui::vec2(judge_width, 0.0));
+
+        // アイコン/名前エリアと同じ幅を確保
+        ui.allocate_space(egui::vec2(icon_width, 0.0));
+
+        if let Some(scene) = scenes.get_mut(*selected_scene_index) {
+            show_add_textbox_button(ui, scene, modes, app_mode);
+        }
+    });
+}
+
+/// 判定ボタン群（大成功/成功/失敗/ファンブルなど） - 特定スロット用
+fn show_judge_buttons_for_slot(
+    ui: &mut egui::Ui,
+    modes: &[Mode],
+    scenes: &mut [Scene],
+    selected_index: &usize,
+    slot_index: usize,
+    text_height: f32,
+) -> egui::Response {
     ui.allocate_ui_with_layout(
         egui::vec2(120.0, text_height),
         egui::Layout::top_down(egui::Align::Min),
@@ -193,7 +291,16 @@ fn show_judge_buttons(
             // 借用エラー回避のため先に必要な値を取得
             let (mode_index, selected_judge_index) =
                 if let Some(scene) = scenes.get(*selected_index) {
-                    (scene.mode_index, scene.selected_judge_index)
+                    let judge_idx = scene
+                        .contents
+                        .get(scene.mode_index)
+                        .and_then(|slots| slots.get(slot_index))
+                        .map(|slot| slot.selected_judge_index)
+                        .unwrap_or_else(|| {
+                            eprintln!("Warning: slot not found, defaulting to 0");
+                            0
+                        });
+                    (scene.mode_index, judge_idx)
                 } else {
                     return;
                 };
@@ -210,13 +317,20 @@ fn show_judge_buttons(
 
                     if ui.add(button).clicked() {
                         if let Some(scene_mut) = scenes.get_mut(*selected_index) {
-                            scene_mut.selected_judge_index = index;
+                            if let Some(slot) = scene_mut
+                                .contents
+                                .get_mut(mode_index)
+                                .and_then(|slots| slots.get_mut(slot_index))
+                            {
+                                slot.selected_judge_index = index;
+                            }
                         }
                     }
                 }
             }
         },
-    );
+    )
+    .response
 }
 
 fn show_player_icon(ui: &mut egui::Ui, scenes: &[Scene]) {
@@ -227,21 +341,33 @@ fn show_player_name(ui: &mut egui::Ui, scenes: &[Scene]) {
     //todo!()
 }
 
-/// テキストエディタ（マルチライン）
-fn show_text_editor(
+/// テキストエディタ（マルチライン） - 指定されたスロット用
+fn show_text_editor_for_slot(
     ui: &mut egui::Ui,
     scenes: &mut [Scene],
-    selected_index: &mut usize,
-    player: &mut [Player],
+    selected_index: &usize,
+    slot_index: usize,
     text_height: f32,
     app_mode: &AppMode,
     toasts: &mut egui_notify::Toasts,
 ) {
     if let Some(scene) = scenes.get_mut(*selected_index) {
+        let mode_index = scene.mode_index;
+
+        // このスロットのselected_judge_indexを取得
+        let judge_index = scene
+            .contents
+            .get(mode_index)
+            .and_then(|slots| slots.get(slot_index))
+            .map(|slot| slot.selected_judge_index)
+            .unwrap_or(0);
+
+        // テキストを取得: contents[mode][slot].texts[judge]
         if let Some(content) = scene
             .contents
-            .get_mut(scene.mode_index)
-            .and_then(|c| c.get_mut(scene.selected_judge_index))
+            .get_mut(mode_index)
+            .and_then(|slots| slots.get_mut(slot_index))
+            .and_then(|slot| slot.texts.get_mut(judge_index))
         {
             match app_mode {
                 AppMode::Edit => {
@@ -270,7 +396,12 @@ fn show_text_editor(
     }
 }
 
-fn show_add_textbox_button(ui: &mut egui::Ui, index: &mut usize, app_mode: &AppMode) {
+fn show_add_textbox_button(
+    ui: &mut egui::Ui,
+    scene: &mut Scene,
+    modes: &[Mode],
+    app_mode: &AppMode,
+) {
     match app_mode {
         AppMode::Edit => {
             if ui
@@ -281,7 +412,15 @@ fn show_add_textbox_button(ui: &mut egui::Ui, index: &mut usize, app_mode: &AppM
                 )
                 .clicked()
             {
-                *index += 1;
+                // 現在のモードにスロットを追加
+                let mode_index = scene.mode_index;
+                if let Some(mode) = modes.get(mode_index) {
+                    if let Some(mode_slots) = scene.contents.get_mut(mode_index) {
+                        // 新しいスロットを作成（各判定のテキストは空）
+                        let new_slot = scene::TextSlot::new_empty(mode.judges.len());
+                        mode_slots.push(new_slot);
+                    }
+                }
             }
         }
 

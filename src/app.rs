@@ -1,6 +1,6 @@
 use crate::panels;
-use crate::scene::{Mode, Scene};
-use egui::Key;
+use crate::scene::{Mode, Scene, TextSlot};
+use egui::{Key, widgets};
 use egui_notify::Toasts;
 use std::path::PathBuf;
 /*
@@ -21,7 +21,7 @@ pub struct MemoApp {
     modes: Vec<Mode>,
     selected_scene_index: usize,
     app_mode: AppMode,
-    player: Vec<Player>,
+    player: Vec<Player_default>,
     #[serde(skip)]
     toasts: Toasts,
     #[serde(skip)]
@@ -35,7 +35,7 @@ pub struct MemoApp {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct Player {
+pub struct Player_default {
     name: String,
     icon_path: Option<PathBuf>,
 }
@@ -46,7 +46,7 @@ pub enum AppMode {
     Copy,
 }
 
-impl Default for Player {
+impl Default for Player_default {
     fn default() -> Self {
         Self {
             name: String::new(),
@@ -64,73 +64,110 @@ impl Default for MemoApp {
                     title: String::from("シーン1"),
                     mode_index: 1,
                     contents: vec![
-                        vec![String::from("地の文1")],
-                        vec![
-                            String::from("大成功1"),
-                            String::from("成功1"),
-                            String::from("失敗1"),
-                            String::from("ファンブル1"),
-                        ],
-                        vec![
-                            String::from("大成功1"),
-                            String::from("成功1"),
-                            String::from("失敗1"),
-                            String::from("ファンブル1"),
-                        ],
+                        vec![TextSlot {
+                            texts: vec![String::from("地の文1")],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
+                        vec![TextSlot {
+                            texts: vec![
+                                String::from("大成功1"),
+                                String::from("成功1"),
+                                String::from("失敗1"),
+                                String::from("ファンブル1"),
+                            ],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
+                        vec![TextSlot {
+                            texts: vec![
+                                String::from("大成功1"),
+                                String::from("成功1"),
+                                String::from("失敗1"),
+                                String::from("ファンブル1"),
+                            ],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
                     ],
-                    selected_judge_index: 0,
-                    player_index: 0,
-                    contents_index: 0,
                 },
                 Scene {
                     title: String::from("シーン2"),
                     mode_index: 1,
                     contents: vec![
-                        vec![String::from("地の文2")],
-                        vec![
-                            String::from("大成功2"),
-                            String::from("成功2"),
-                            String::from("失敗2"),
-                            String::from("ファンブル2"),
-                        ],
-                        vec![
-                            String::from("大成功1"),
-                            String::from("成功1"),
-                            String::from("失敗1"),
-                            String::from("ファンブル1"),
-                        ],
+                        vec![TextSlot {
+                            texts: vec![String::from("地の文2")],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
+                        vec![TextSlot {
+                            texts: vec![
+                                String::from("大成功2"),
+                                String::from("成功2"),
+                                String::from("失敗2"),
+                                String::from("ファンブル2"),
+                            ],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
+                        vec![TextSlot {
+                            texts: vec![
+                                String::from("大成功1"),
+                                String::from("成功1"),
+                                String::from("失敗1"),
+                                String::from("ファンブル1"),
+                            ],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
                     ],
-                    selected_judge_index: 0,
-                    player_index: 0,
-                    contents_index: 0,
                 },
                 Scene {
                     title: String::from("シーン3"),
                     mode_index: 1,
                     contents: vec![
-                        vec![String::from("地の文3")],
-                        vec![
-                            String::from("大成功3"),
-                            String::from("成功3"),
-                            String::from("失敗3"),
-                            String::from("ファンブル3"),
-                        ],
-                        vec![
-                            String::from("大成功1"),
-                            String::from("成功1"),
-                            String::from("失敗1"),
-                            String::from("ファンブル1"),
-                        ],
+                        vec![TextSlot {
+                            texts: vec![String::from("地の文3")],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
+                        vec![TextSlot {
+                            texts: vec![
+                                String::from("大成功3"),
+                                String::from("成功3"),
+                                String::from("失敗3"),
+                                String::from("ファンブル3"),
+                            ],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
+                        vec![TextSlot {
+                            texts: vec![
+                                String::from("大成功1"),
+                                String::from("成功1"),
+                                String::from("失敗1"),
+                                String::from("ファンブル1"),
+                            ],
+                            selected_judge_index: 0,
+                            label: None,
+                            icon_path: None,
+                        }],
                     ],
-                    selected_judge_index: 0,
-                    player_index: 0,
-                    contents_index: 0,
                 },
             ],
             modes: vec![
                 Mode {
                     name: String::from("地の文"),
                     judges: vec![String::from("本文")],
+                    default_text_num: 1,
                 },
                 Mode {
                     name: String::from("プレイヤー"),
@@ -140,6 +177,7 @@ impl Default for MemoApp {
                         String::from("失敗"),
                         String::from("ファンブル"),
                     ],
+                    default_text_num: 4,
                 },
                 Mode {
                     name: String::from("探索"),
@@ -149,6 +187,7 @@ impl Default for MemoApp {
                         String::from("失敗"),
                         String::from("ファンブル"),
                     ],
+                    default_text_num: 4,
                 },
             ],
             selected_scene_index: 0,
@@ -156,23 +195,23 @@ impl Default for MemoApp {
             app_mode: AppMode::Edit,
             toasts: Toasts::default(),
             player: vec![
-                Player {
+                Player_default {
                     name: String::from("地の文"),
                     icon_path: None,
                 },
-                Player {
+                Player_default {
                     name: String::from("探偵"),
                     icon_path: None,
                 },
-                Player {
+                Player_default {
                     name: String::from("助手"),
                     icon_path: None,
                 },
-                Player {
+                Player_default {
                     name: String::from("医者"),
                     icon_path: None,
                 },
-                Player {
+                Player_default {
                     name: String::from("怪盗"),
                     icon_path: None,
                 },
