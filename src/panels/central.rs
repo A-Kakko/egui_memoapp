@@ -2,7 +2,7 @@ use crate::constants::constants::*;
 use crate::scene;
 use crate::widgets::combobox::enable_wheel;
 use crate::{
-    app::{AppMode, Player_default},
+    app::{AppMode, Player_default,Mordal},
     scene::{LayoutCache, Mode, Scene},
 };
 #[allow(unused_imports)]
@@ -18,15 +18,14 @@ pub fn show(
     selected_scene_index: &mut usize,
     create_index: &mut usize,
     app_mode: &AppMode,
-    editing_scene_name_modal_open: &mut bool,
-    editing_scene_delete_modal_open: &mut bool,
+    mordal:&mut Mordal,
     toasts: &mut egui_notify::Toasts,
 ) {
     egui::CentralPanel::default().show(ctx, |ui| {
         // 上段: シーン選択、モード選択、追加/削除ボタン
         ui.horizontal(|ui| {
             show_scene_selector(ui, scenes, selected_scene_index);
-            show_scene_edit_button(ui, editing_scene_name_modal_open);
+            show_scene_edit_button(ui,&mut mordal.editing_scene_name_modal_open);
             show_mode_selector(ui, modes, scenes, selected_scene_index);
             show_scene_buttons(
                 ui,
@@ -34,7 +33,7 @@ pub fn show(
                 scenes,
                 selected_scene_index,
                 create_index,
-                editing_scene_delete_modal_open,
+                &mut mordal.editing_scene_delete_modal_open,
             );
         });
 

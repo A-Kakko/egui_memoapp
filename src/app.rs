@@ -15,8 +15,8 @@ TODO:設定ファイル追加
 TODO:ショートカットキー(一部追加済)
 */
 #[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)]
 pub struct MemoApp {
+#[serde(default)]
     scenes: Vec<Scene>,
     modes: Vec<Mode>,
     selected_scene_index: usize,
@@ -25,11 +25,7 @@ pub struct MemoApp {
     #[serde(skip)]
     toasts: Toasts,
     #[serde(skip)]
-    editing_scene_name_modal_open: bool,
-    #[serde(skip)]
-    editing_scene_delete_modal_open: bool,
-    #[serde(skip)]
-    editing_scene_name_buffer: String,
+    mordal:Mordal,
     #[serde(skip)]
     create_index: usize,
 }
@@ -44,6 +40,23 @@ pub struct Player_default {
 pub enum AppMode {
     Edit,
     Copy,
+}
+
+#[derive(Default)]
+pub struct Mordal{
+    pub editing_scene_name_modal_open : bool,
+    pub editing_scene_name_buffer: String,
+    pub editing_scene_delete_modal_open : bool,
+}
+
+impl Mordal {
+    pub fn new() -> Self{
+        Self{
+            editing_scene_name_modal_open:false,
+            editing_scene_name_buffer: String::new(),
+            editing_scene_delete_modal_open:false,
+        }
+    }
 }
 
 impl Default for Player_default {
@@ -219,9 +232,7 @@ impl Default for MemoApp {
                     icon_path: None,
                 },
             ],
-            editing_scene_name_modal_open: false,
-            editing_scene_delete_modal_open: false,
-            editing_scene_name_buffer: String::new(),
+            mordal:Mordal::new(),
         }
     }
 }
@@ -240,8 +251,8 @@ impl MemoApp {
     fn show_scene_name_edit_modal(&mut self, ctx: &egui::Context) {
         // Escで閉じる
         if ctx.input(|i| i.key_pressed(Key::Escape)) {
-            self.editing_scene_name_modal_open = false;
-            self.editing_scene_name_buffer.clear();
+            self.mordal.editing_scene_name_modal_open = false;
+            self.mordal.editing_scene_name_buffer.clear();
         }
 
         egui::Window::new("シーン名を編集")
@@ -250,26 +261,26 @@ impl MemoApp {
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
             .show(ctx, |ui| {
                 ui.label("新しいシーン名:");
-                ui.text_edit_singleline(&mut self.editing_scene_name_buffer);
+                ui.text_edit_singleline(&mut self.mordal.editing_scene_name_buffer);
 
                 ui.horizontal(|ui| {
                     if ui.button("OK").clicked() {
                         // シーン名を更新
 
-                        if !self.editing_scene_name_buffer.is_empty() {
+                        if !self.mordal.editing_scene_name_buffer.is_empty() {
                             if let Some(scene) = self.scenes.get_mut(self.selected_scene_index) {
-                                scene.title = self.editing_scene_name_buffer.clone();
+                                scene.title = self.mordal.editing_scene_name_buffer.clone();
                             }
                         }
                         // モーダルを閉じる
-                        self.editing_scene_name_modal_open = false;
-                        self.editing_scene_name_buffer.clear();
+                        self.mordal.editing_scene_name_modal_open = false;
+                        self.mordal.editing_scene_name_buffer.clear();
                     }
 
                     if ui.button("キャンセル").clicked() {
                         // モーダルを閉じる
-                        self.editing_scene_name_modal_open = false;
-                        self.editing_scene_name_buffer.clear();
+                        self.mordal.editing_scene_name_modal_open = false;
+                        self.mordal.editing_scene_name_buffer.clear();
                     }
                 });
             });
@@ -286,14 +297,14 @@ impl MemoApp {
                         self.scenes.remove(self.selected_scene_index);
                         self.selected_scene_index = self.selected_scene_index.saturating_sub(1);
                         // モーダルを閉じる
-                        self.editing_scene_delete_modal_open = false;
+                        self.mordal.editing_scene_delete_modal_open = false;
                     }
 
                     if ui.button("キャンセル").clicked()
                         || ctx.input(|i| i.key_pressed(Key::Escape))
                     {
                         // モーダルを閉じる
-                        self.editing_scene_delete_modal_open = false;
+                        self.mordal.editing_scene_delete_modal_open = false;
                     }
                 });
             });
@@ -309,7 +320,7 @@ impl eframe::App for MemoApp {
         ctx.set_pixels_per_point(1.5);
 
         // 前のフレームでモーダルが開いていたかを記録
-        let was_edit_modal_open = self.editing_scene_name_modal_open;
+        let was_edit_modal_open = self.mordal.editing_scene_name_modal_open;
 
         panels::top::show(ctx, &mut self.app_mode);
         panels::side::show(ctx, &self.scenes, &mut self.selected_scene_index);
@@ -320,25 +331,24 @@ impl eframe::App for MemoApp {
             &mut self.selected_scene_index,
             &mut self.create_index,
             &self.app_mode,
-            &mut self.editing_scene_name_modal_open,
-            &mut self.editing_scene_delete_modal_open,
+            &mut self.mordal,
             &mut self.toasts,
         );
 
         // モーダルが新しく開かれた場合のみバッファを初期化
-        if self.editing_scene_name_modal_open && !was_edit_modal_open {
+        if self.mordal.editing_scene_name_modal_open && !was_edit_modal_open {
             if let Some(scene) = self.scenes.get(self.selected_scene_index) {
-                self.editing_scene_name_buffer = scene.title.clone();
+                self.mordal.editing_scene_name_buffer = scene.title.clone();
             }
         }
 
         // シーン名編集モーダル
-        if self.editing_scene_name_modal_open {
+        if self.mordal.editing_scene_name_modal_open {
             self.show_scene_name_edit_modal(ctx);
         }
 
         // シーン削除確認モーダル
-        if self.editing_scene_delete_modal_open {
+        if self.mordal.editing_scene_delete_modal_open {
             self.show_scene_delete_modal(ctx);
         }
 
