@@ -4,10 +4,8 @@ use egui::{Key, widgets};
 use egui_notify::Toasts;
 use std::path::PathBuf;
 /*
-TODO:プレイヤー追加
-TODO:これの描写追加
-TODO:データ構造どうする？追加ボタンは作った
 TODO:アイコン/名前表示
+TODO:デフォルトの形をどうするか？▶設定ファイルと整合
 TODO:ファイルIO
 TODO:パーサー
 TODO:それのやり取りするInterface(Trate)
