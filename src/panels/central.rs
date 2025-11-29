@@ -203,7 +203,7 @@ fn show_all_slots(
                         );
                         max_judge_width = max_judge_width.max(judge_width);
                         max_icon_width = max_icon_width.max(icon_width);
-                        ui.add_space(3.0);
+                        ui.add_space(SLOT_SPACING);
                     }
 
                     // キャッシュを更新
@@ -233,7 +233,7 @@ fn show_all_slots(
                             app_mode,
                             toasts,
                         );
-                        ui.add_space(3.0);
+                        ui.add_space(SLOT_SPACING);
                     }
                 }
             }
@@ -332,7 +332,7 @@ fn show_judge_buttons_for_slot(
     text_height: f32,
 ) -> egui::Response {
     ui.allocate_ui_with_layout(
-        egui::vec2(120.0, text_height),
+        egui::vec2(JUDGE_BUTTON_WIDTH, text_height),
         egui::Layout::top_down(egui::Align::Min),
         |ui| {
             // 借用エラー回避のため先に必要な値を取得

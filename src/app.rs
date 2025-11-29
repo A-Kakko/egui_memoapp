@@ -1,3 +1,4 @@
+use crate::constants::constants::DEFAULT_PIXELS_PER_POINT;
 use crate::panels;
 use crate::scene::{Mode, Scene, TextSlot};
 use egui::{Key, widgets};
@@ -315,7 +316,7 @@ impl eframe::App for MemoApp {
     }
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.set_pixels_per_point(1.5);
+        ctx.set_pixels_per_point(DEFAULT_PIXELS_PER_POINT);
 
         // 前のフレームでモーダルが開いていたかを記録
         let was_edit_modal_open = self.modal.editing_scene_name_modal_open;
